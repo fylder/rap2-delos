@@ -3,7 +3,7 @@ import { IConfigOptions } from "../types";
 let config: IConfigOptions = {
   version: '2.3',
   serve: {
-    port: 8080,
+    port: 2333,
   },
   keys: ['some secret hurr'],
   session: {
@@ -14,8 +14,8 @@ let config: IConfigOptions = {
     host: 'localhost',
     port: 3306,
     username: 'root',
-    password: '',
-    database: 'RAP2_DELOS_APP',
+    password: '123456',
+    database: 'RAP2_DELOS_DEV',
     pool: {
       max: 5,
       min: 0,
@@ -24,7 +24,11 @@ let config: IConfigOptions = {
     logging: false,
   },
   redis: {
-  }
+  },
+  email: {
+    user: '',
+    pass: ''
+  },
 }
 
 export default config

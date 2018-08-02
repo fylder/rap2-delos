@@ -14,4 +14,8 @@ declare interface IConfigOptions {
   keycenter?: string | boolean,
   db: ISequelizeConfig
   redis: RedisOptions
+  email: {
+    user: string
+    pass: string
+  }
 }

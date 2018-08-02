@@ -23,7 +23,11 @@ let config: IConfigOptions = {
     },
     logging: false
   },
-  redis: {}
+  redis: {},
+  email: {
+    user: '',
+    pass: ''
+  },
 }
 
 export default config

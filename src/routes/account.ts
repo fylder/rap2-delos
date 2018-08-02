@@ -5,6 +5,9 @@ import { Model, Sequelize } from 'sequelize-typescript';
 import Pagination from './utils/pagination'
 import { QueryInclude } from '../models'
 import * as md5 from 'md5'
+import { isNullOrUndefined } from 'util';
+import nodemailer = require('nodemailer');
+import config from '../config'
 const Op = Sequelize.Op
 
 router.get('/app/get', async (ctx, next) => {
@@ -140,6 +143,86 @@ router.post('/account/register', async (ctx) => {
       fullname: result.fullname,
       email: result.email,
     },
+  }
+})
+router.post('/account/forget', async (ctx) => {
+  const { email } = ctx.request.body
+  let errMsg = ''
+  let isOk = false
+  if (isNullOrUndefined(email)) {
+    errMsg = '邮箱不对'
+  } else {
+    let emailConfig = {
+      host: 'smtp.qq.com',
+      port: 465,
+      auth: {
+        user: config.email.user,
+        pass: config.email.pass
+      }
+    };
+    ctx.session.email_captcha = Math.random().toString().slice(-6)
+
+    let mailOptions = {
+      to: email,
+      from: emailConfig.auth.user,
+      subject: "rap2验证码",
+      text: "验证码:" + ctx.session.email_captcha
+    }
+    // 创建一个SMTP客户端对象
+    let transporter = nodemailer.createTransport(emailConfig);
+    // 发送邮件
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        return console.log(error);
+      }
+      console.log('mail sent:', info.response);
+    });
+    errMsg = 'ahh'
+    isOk = true
+  }
+  ctx.body = {
+    data: {
+      isOk,
+      errMsg
+    }
+  }
+})
+
+router.post('/account/captcha', async (ctx) => {
+  const { email, captcha } = ctx.request.body
+  let isOk = false
+  let errMsg = ''
+  let user
+  if (isNullOrUndefined(captcha)) {
+    errMsg = "参数错误"
+  } else {
+    if (captcha == ctx.session.email_captcha) {
+      user = await User.findOne({
+        attributes: QueryInclude.User.attributes,
+        where: { email },
+      })
+      if (user) {
+        ctx.session.id = user.id
+        ctx.session.fullname = user.fullname
+        ctx.session.email = user.email
+        let app: any = ctx.app
+        app.counter.users[user.fullname] = true
+        isOk = true
+      } else {
+        errMsg = '账号不存在'
+      }
+    } else {
+      errMsg = '输入验证码有误'
+    }
+  }
+  ctx.body = {
+    data: user ? {
+      isOk,
+      user
+    } : {
+        isOk,
+        errMsg
+      }
   }
 })
 
