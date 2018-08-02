@@ -813,6 +813,11 @@ router.post('/properties/update', async (ctx, next) => {
   })
   // 更新已存在的属性
   for (let item of existingProperties) {
+    // 传入null值默认处理string类型
+    if (item.type === "Null") {
+      item.type = "String"
+      item.value = ""
+    }
     let affected = await Property.update(item, {
       where: { id: item.id },
     })
@@ -822,6 +827,10 @@ router.post('/properties/update', async (ctx, next) => {
   let newProperties = properties.filter((item: any) => item.memory)
   let memoryIdsMap: any = {}
   for (let item of newProperties) {
+    if (item.type === "Null") {
+      item.type = "String"
+      item.value = ""
+    }
     let created = await Property.create(Object.assign({}, item, {
       id: undefined,
       parentId: -1,
