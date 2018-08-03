@@ -177,6 +177,7 @@ router.post('/account/forget', async (ctx) => {
       }
       console.log('mail sent:', info.response);
     });
+    ctx.session.email_check = email
     errMsg = 'ahh'
     isOk = true
   }
@@ -196,7 +197,8 @@ router.post('/account/captcha', async (ctx) => {
   if (isNullOrUndefined(captcha)) {
     errMsg = "参数错误"
   } else {
-    if (captcha == ctx.session.email_captcha) {
+    console.log("email:" + email + ",email_check:" + ctx.session.email_check)
+    if (email === ctx.session.email_check && captcha === ctx.session.email_captcha) {
       user = await User.findOne({
         attributes: QueryInclude.User.attributes,
         where: { email },
@@ -212,7 +214,10 @@ router.post('/account/captcha', async (ctx) => {
         errMsg = '账号不存在'
       }
     } else {
-      errMsg = '输入验证码有误'
+      if (captcha !== ctx.session.email_captcha)
+        errMsg = '输入验证码有误'
+      if (email !== ctx.session.email_check)
+        errMsg = '请确认您的邮箱'
     }
   }
   ctx.body = {
